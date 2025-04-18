@@ -1,28 +1,50 @@
-import { SectionConfig } from './types';
+import { faCalendar, faChartArea, faChartBar, faFileInvoice, faUser, faUserTie, faCog  } from '@fortawesome/free-solid-svg-icons';
+import { NavItem } from './types';
 
-export const clientNavigation: SectionConfig[] = [
+export const clientNavigation: NavItem[] = [
   {
-    name: 'Dashboard',
-    icon: 'chart-line',
+    name: 'Home',
+    icon: faChartArea,
+    href: '/client/home',
+    current: false,
   },
   {
     name: 'Profile',
-    icon: 'user',
+    icon: faUser,
+    href: '/client/profile',
+    current: false,
   },
   {
     name: 'Contractors',
-    icon: 'user-tie',
+    icon: faUserTie,
+    href: '/client/contractors',
+    current: false,
   },
   {
     name: 'Bookings',
-    icon: 'calendar',
+    icon: faCalendar,
+    href: '/client/bookings',
+    current: false,
   },
   {
     name: 'Invoices',
-    icon: 'file-invoice',
+    icon: faFileInvoice,
+    href: '/client/invoices',
+    current: false,
   },
   {
     name: 'Reports',
-    icon: 'chart-bar',
+    icon: faChartBar,
+    href: '/client/reports',
+    current: false,
+  },
+];
+
+export const clientNavigationBottom: NavItem[] = [
+  {
+    name: 'Settings',
+    icon: faCog,
+    href: '/client/settings',
+    current: false,
   },
 ];

@@ -27,8 +27,8 @@ export default function EnrollmentPage() {
   return (
     <div className="py-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Enrollment Form</h1>
-        <div className="mt-6">
+        
+        <div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>

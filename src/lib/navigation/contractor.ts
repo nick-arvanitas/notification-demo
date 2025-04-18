@@ -1,28 +1,62 @@
-import { SectionConfig } from './types';
+import { faChartLine, faUser, faCalendarAlt, faTasks, faClock, faFolder, faCog } from '@fortawesome/free-solid-svg-icons';
+import { NavItem } from './types';
 
-export const contractorNavigation: SectionConfig[] = [
+export const contractorNavigation: NavItem[] = [
   {
-    name: 'Dashboard',
-    icon: 'chart-line',
+    name: 'Home',
+    icon: faChartLine,
+    href: '/contractor/home',
+    current: false,
   },
   {
-    name: 'Profile',
-    icon: 'user',
+    name: 'Clients',
+    icon: faUser,
+    href: '/contractor/clients',
+    current: false,
   },
   {
-    name: 'Availability',
-    icon: 'calendar-alt',
+    name: 'Team',
+    icon: faUser,
+    href: '/contractor/team',
+    current: false,
   },
   {
-    name: 'Assignments',
-    icon: 'tasks',
+    name: 'Company',
+    icon: faFolder,
+    href: '/contractor/company',
+    current: false,
   },
   {
-    name: 'Timesheets',
-    icon: 'clock',
+    name: 'Safety',
+    icon: faTasks,
+    href: '/contractor/safety',
+    current: false,
   },
   {
-    name: 'Documents',
-    icon: 'folder',
+    name: 'Finance',
+    icon: faFolder,
+    href: '/contractor/finance',
+    current: false,
+  },
+  {
+    name: 'Insurance',
+    icon: faFolder,
+    href: '/contractor/insurance',
+    current: false,
+  },
+  {
+    name: 'Subcontractors',
+    icon: faUser,
+    href: '/contractor/subcontractors',
+    current: false,
+  },
+];
+
+export const contractorNavigationBottom: NavItem[] = [
+  {
+    name: 'Settings',
+    icon: faCog,
+    href: '/contractor/settings',
+    current: false,
   },
 ];

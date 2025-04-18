@@ -10,19 +10,19 @@ import {
   MenuItems,
   TransitionChild,
 } from '@headlessui/react'
-import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import {
   Bars3Icon,
   BellIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import LeftNav from './LeftNav'
-import { TopNav } from './TopNav';
-import { usePathname } from 'next/navigation';
+import { NavItem } from '@/src/lib/navigation/types'
+import { getSubNavigation } from '@/src/lib/navigation/utils'
+import HeaderBar from './HeaderBar'
 
-import { getNavigationItems, NavItem } from '@/src/lib/navigation';
-import HeaderBar from './HeaderBar';
 const userNavigation = [
   { name: 'Your profile', href: '#' },
   { name: 'Sign out', href: '#' },
@@ -32,12 +32,21 @@ interface MainLayoutProps {
   children: React.ReactNode;
   navigation: NavItem[];
   section: 'admin' | 'client' | 'contractor';
+  bottomNavigation: NavItem[];
 }
 
-export default function MainLayout({ children, navigation, section }: MainLayoutProps) {
+export default function MainLayout({ children, navigation, section, bottomNavigation }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname();
-  const subNavigation = getNavigationItems(pathname, section);
+  const subNavigation = getSubNavigation(pathname, section);
+
+  const activeRootPage = [...navigation, ...bottomNavigation].find(item => {
+    const itemPath = item.href?.toString().split('/').filter(Boolean)[1];
+    const pathSegments = pathname.split('/').filter(Boolean);
+    return itemPath === (pathSegments[0] === section ? pathSegments[1] : pathSegments[0]);
+  });
+
+  console.log(activeRootPage);
 
   return (
     <>
@@ -61,14 +70,14 @@ export default function MainLayout({ children, navigation, section }: MainLayout
                   </button>
                 </div>
               </TransitionChild>
-              <LeftNav navigation={navigation} />
+              <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage} />
             </DialogPanel>
           </div>
         </Dialog>
 
         {/* Static sidebar for desktop */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-          <LeftNav navigation={navigation} />
+          <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage} />
         </div>
 
         <div className="lg:pl-72">
@@ -81,20 +90,8 @@ export default function MainLayout({ children, navigation, section }: MainLayout
             {/* Separator */}
             <div aria-hidden="true" className="h-6 w-px bg-gray-900/10 lg:hidden" />
 
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <form action="#" method="GET" className="grid flex-1 grid-cols-1">
-                <input
-                  name="search"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6"
-                />
-                <MagnifyingGlassIcon
-                  aria-hidden="true"
-                  className="pointer-events-none col-start-1 row-start-1 size-5 self-center text-gray-400"
-                />
-              </form>
+            <div className="flex flex-1 gap-x-4 self-stretch justify-end lg:gap-x-6">
+              
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                   <span className="sr-only">View notifications</span>
@@ -140,7 +137,10 @@ export default function MainLayout({ children, navigation, section }: MainLayout
             </div>
           </div>
           <main>
-            <HeaderBar title={subNavigation[0].name} subnavigation={subNavigation} />
+            <HeaderBar 
+              title={activeRootPage?.name || subNavigation[0]?.name || ''} 
+              subnavigation={subNavigation} 
+            />
             <div className="px-4 sm:px-6 lg:px-8">
               {children}
             </div>

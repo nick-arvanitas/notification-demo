@@ -1,24 +1,11 @@
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import { Url } from 'next/dist/shared/lib/router/router';
 
-export interface NavItem {
+export type NavItem = {
   name: string;
-  href: string;
   icon: IconProp;
+  href?: Url;
   current: boolean;
+  parentTitle?: string;
+  subpages?: NavItem[];
 }
-
-export interface SubpageConfig {
-  name: string;
-  icon: IconProp;
-  subpages?: {
-    [key: string]: SubpageConfig;
-  };
-}
-
-export interface SectionConfig {
-  name: string;
-  icon: IconProp;
-  subpages?: {
-    [key: string]: SubpageConfig;
-  };
-} 

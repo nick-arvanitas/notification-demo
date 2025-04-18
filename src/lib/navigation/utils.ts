@@ -1,16 +1,16 @@
-import { NavItem, SectionConfig } from './types';
+import { NavItem } from './types';
 import { adminNavigation } from './admin';
 import { contractorNavigation } from './contractor';
 import { clientNavigation } from './client';
 
 // Navigation configuration for each section
-const sections: Record<string, SectionConfig[]> = {
+const sections: Record<string, NavItem[]> = {
   admin: adminNavigation,
   contractor: contractorNavigation,
   client: clientNavigation,
 };
 
-export function getNavigationItems(currentPath: string, section: 'admin' | 'client' | 'contractor'): NavItem[] {
+export function getSubNavigation(currentPath: string, section: 'admin' | 'client' | 'contractor'): NavItem[] {
   const pathParts = currentPath.split('/').filter(Boolean);
   if (pathParts.length <= 1) return [];
 
@@ -23,11 +23,10 @@ export function getNavigationItems(currentPath: string, section: 'admin' | 'clie
   const config = configs.find(c => c.name.toLowerCase() === subSection);
   if (!config?.subpages) return [];
 
-  return Object.entries(config.subpages).map(([key, subConfig]) => ({
-    name: subConfig.name,
-    href: `/${section}/${subSection}/${key}`,
-    icon: subConfig.icon,
-    current: currentPath === `/${section}/${subSection}/${key}`,
+  return config.subpages.map(subpage => ({
+    ...subpage,
+    current: currentPath === subpage.href,
+    parentTitle: config.name,
   }));
 }
 
@@ -37,9 +36,11 @@ export function getMainNavigation(section: 'admin' | 'client' | 'contractor'): N
   if (!configs?.length) return [];
 
   return configs.map(config => ({
-    name: config.name,
-    href: `/${section}/${config.name.toLowerCase()}`,
-    icon: config.icon,
+    ...config,
     current: false,
+    subpages: config.subpages?.map(subpage => ({
+      ...subpage,
+      current: false
+    }))
   }));
 }

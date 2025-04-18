@@ -1,13 +1,17 @@
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export function TopNav({ tabs }: { tabs: { name: string, href: string }[] }) {
+  const pathname = usePathname()
+  
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-x-8 border-b border-gray-200">
       {tabs.map((tab) => (
         <Link 
           key={tab.name}
           href={tab.href} 
-          className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          className="px-0.5 pb-1 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 data-[current=true]:border-blue-600 data-[current=true]:text-blue-700"
+          data-current={tab.href === pathname}
         >
           {tab.name}
         </Link>
