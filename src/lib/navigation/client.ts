@@ -1,7 +1,13 @@
-import { faCalendar, faChartArea, faChartBar, faFileInvoice, faUser, faUserTie, faCog  } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faChartArea, faChartBar, faFileInvoice, faUser, faUserTie, faCog, faHome  } from '@fortawesome/free-solid-svg-icons';
 import { NavItem } from './types';
 
 export const clientNavigation: NavItem[] = [
+  {
+    name: 'Home',
+    icon: faHome,
+    href: '/client',
+    current: false,
+  },
   {
     name: 'Home',
     icon: faChartArea,

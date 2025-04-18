@@ -70,14 +70,14 @@ export default function MainLayout({ children, navigation, section, bottomNaviga
                   </button>
                 </div>
               </TransitionChild>
-              <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage} />
+              <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage as NavItem} />
             </DialogPanel>
           </div>
         </Dialog>
 
         {/* Static sidebar for desktop */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-          <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage} />
+            <LeftNav navigation={navigation} bottomNavigation={bottomNavigation} activeRootPage={activeRootPage as NavItem} />
         </div>
 
         <div className="lg:pl-72">
@@ -139,7 +139,7 @@ export default function MainLayout({ children, navigation, section, bottomNaviga
           <main>
             <HeaderBar 
               title={activeRootPage?.name || subNavigation[0]?.name || ''} 
-              subnavigation={subNavigation} 
+              subnavigation={subNavigation as NavItem[]} 
             />
             <div className="px-4 sm:px-6 lg:px-8">
               {children}

@@ -1,4 +1,4 @@
-import { faChartLine, faUser, faCalendarAlt, faTasks, faClock, faFolder, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine, faCog, faFolder, faTasks, faUser } from '@fortawesome/free-solid-svg-icons';
 import { NavItem } from './types';
 
 export const contractorNavigation: NavItem[] = [

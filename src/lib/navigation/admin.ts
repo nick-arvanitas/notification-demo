@@ -1,6 +1,12 @@
-import {  NavItem } from './types';
-import { faChartBar, faUser, faUserTie, faSliders, faClipboardCheck, faCog, faFileExport, faCalendar, faEnvelope, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faChartBar, faClipboardCheck, faCog, faEnvelope, faFileExport, faHome, faSliders, faUser, faUsers, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import { NavItem } from './types';
 export const adminNavigation: NavItem[] = [
+  {
+    name: 'Home',
+    icon: faHome,
+    href: '/admin',
+    current: false,
+  },
   {
     name: 'Contractors',
     icon: faUserTie,

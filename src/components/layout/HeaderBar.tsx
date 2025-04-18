@@ -1,8 +1,9 @@
 import { TopNav } from './TopNav';
+import { NavItem } from '@/src/lib/navigation/types';
 
 interface HeaderBarProps {
   title: string;
-  subnavigation?: { name: string; href: string }[];
+  subnavigation?: NavItem[];
 }
 
 export default function HeaderBar({ title, subnavigation }: HeaderBarProps) {
