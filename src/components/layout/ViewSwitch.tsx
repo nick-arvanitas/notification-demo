@@ -7,9 +7,9 @@ export function ViewSwitch()  {
     const router = useRouter();
 
     const routes = {
-        admin: '/admin/contractors',
-        client: '/client/home',
-        contractor: '/contractor/home'
+        admin: '/admin',
+        client: '/client',
+        contractor: '/contractor'
     };
 
     return (

@@ -5,7 +5,7 @@ export const contractorNavigation: NavItem[] = [
   {
     name: 'Home',
     icon: faChartLine,
-    href: '/contractor/home',
+    href: '/contractor',
     current: false,
   },
   {

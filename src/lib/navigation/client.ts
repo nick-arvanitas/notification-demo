@@ -9,12 +9,6 @@ export const clientNavigation: NavItem[] = [
     current: false,
   },
   {
-    name: 'Home',
-    icon: faChartArea,
-    href: '/client/home',
-    current: false,
-  },
-  {
     name: 'Profile',
     icon: faUser,
     href: '/client/profile',

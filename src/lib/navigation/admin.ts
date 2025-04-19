@@ -2,15 +2,9 @@ import { faCalendar, faChartBar, faClipboardCheck, faCog, faEnvelope, faFileExpo
 import { NavItem } from './types';
 export const adminNavigation: NavItem[] = [
   {
-    name: 'Home',
-    icon: faHome,
-    href: '/admin',
-    current: false,
-  },
-  {
     name: 'Contractors',
     icon: faUserTie,
-    href: '/admin/contractors',
+    href: '/admin',
     current: false,
   },
   {
