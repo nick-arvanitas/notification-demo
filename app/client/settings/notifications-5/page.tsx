@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { div } from 'framer-motion/client';
 
 type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
 type DocumentNotificationScope = 'all' | 'myProjects' | 'custom' | 'none';
@@ -327,166 +328,38 @@ export default function NotificationsPage() {
     contractor.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleContractorSelect = (contractor: string, category: string) => {
-    switch (category) {
-      case 'company':
-        if (contractor && !companySelectedContractors.includes(contractor)) {
-          setCompanySelectedContractors([
-            ...companySelectedContractors,
-            contractor,
-          ]);
-          setCompanySelectedContractor('');
-        }
-        break;
-      case 'safety':
-        if (contractor && !safetySelectedContractors.includes(contractor)) {
-          setSafetySelectedContractors([
-            ...safetySelectedContractors,
-            contractor,
-          ]);
-          setSafetySelectedContractor('');
-        }
-        break;
-      case 'finance':
-        if (contractor && !financeSelectedContractors.includes(contractor)) {
-          setFinanceSelectedContractors([
-            ...financeSelectedContractors,
-            contractor,
-          ]);
-          setFinanceSelectedContractor('');
-        }
-        break;
-      case 'documents':
-        if (contractor && !documentsSelectedContractors.includes(contractor)) {
-          setDocumentsSelectedContractors([
-            ...documentsSelectedContractors,
-            contractor,
-          ]);
-          setDocumentsSelectedContractor('');
-        }
-        break;
+  const handleContractorSelect = (contractor: string) => {
+    if (contractor && !selectedContractors.includes(contractor)) {
+      setSelectedContractors([...selectedContractors, contractor]);
+      setSelectedContractor('');
     }
   };
 
   const handleAddContractors = (category: string, setting: string) => {
-    let contractorsToAdd: string[] = [];
-    switch (category) {
-      case 'company':
-        contractorsToAdd = companySelectedContractors;
-        setCompanySelectedContractors([]);
-        break;
-      case 'safety':
-        contractorsToAdd = safetySelectedContractors;
-        setSafetySelectedContractors([]);
-        break;
-      case 'finance':
-        contractorsToAdd = financeSelectedContractors;
-        setFinanceSelectedContractors([]);
-        break;
-      case 'documents':
-        contractorsToAdd = documentsSelectedContractors;
-        setDocumentsSelectedContractors([]);
-        break;
-    }
-    addWatchedUsers(category, setting, contractorsToAdd);
+    addWatchedUsers(category, setting, selectedContractors);
     toast.success(
-      `${contractorsToAdd.length} contractor${contractorsToAdd.length === 1 ? '' : 's'} added to your notification list.`,
+      `${selectedContractors.length} contractor${selectedContractors.length === 1 ? '' : 's'} added to your notification list.`,
       {
         position: 'top-right',
       },
     );
   };
 
-  const handleDrawerOpen = (category: string) => {
-    switch (category) {
-      case 'company':
-        setCompanyDrawerOpen(true);
-        break;
-      case 'safety':
-        setSafetyDrawerOpen(true);
-        break;
-      case 'finance':
-        setFinanceDrawerOpen(true);
-        break;
-      case 'documents':
-        setDocumentsDrawerOpen(true);
-        break;
-    }
+  const handleDrawerOpen = (category: string, setting: string) => {
+    const notification = notifications[category][setting];
+    setSelectedContractors(notification.watchedUsers || []);
+    setIsDrawerOpen(true);
   };
 
-  const handleDrawerClose = (category: string) => {
-    switch (category) {
-      case 'company':
-        setCompanyDrawerOpen(false);
-        setCompanySelectedContractors([]);
-        setCompanySelectedContractor('');
-        break;
-      case 'safety':
-        setSafetyDrawerOpen(false);
-        setSafetySelectedContractors([]);
-        setSafetySelectedContractor('');
-        break;
-      case 'finance':
-        setFinanceDrawerOpen(false);
-        setFinanceSelectedContractors([]);
-        setFinanceSelectedContractor('');
-        break;
-      case 'documents':
-        setDocumentsDrawerOpen(false);
-        setDocumentsSelectedContractors([]);
-        setDocumentsSelectedContractor('');
-        break;
-    }
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+    setSelectedContractors([]);
+    setSelectedContractor('');
   };
 
   const renderDocumentScopeSelector = (category: string, setting: string) => {
     const notification = notifications[category][setting];
     if (!notification.enabled) return null;
-
-    const isDrawerOpen = (() => {
-      switch (category) {
-        case 'company':
-          return companyDrawerOpen;
-        case 'safety':
-          return safetyDrawerOpen;
-        case 'finance':
-          return financeDrawerOpen;
-        case 'documents':
-          return documentsDrawerOpen;
-        default:
-          return false;
-      }
-    })();
-
-    const selectedContractors = (() => {
-      switch (category) {
-        case 'company':
-          return companySelectedContractors;
-        case 'safety':
-          return safetySelectedContractors;
-        case 'finance':
-          return financeSelectedContractors;
-        case 'documents':
-          return documentsSelectedContractors;
-        default:
-          return [];
-      }
-    })();
-
-    const selectedContractor = (() => {
-      switch (category) {
-        case 'company':
-          return companySelectedContractor;
-        case 'safety':
-          return safetySelectedContractor;
-        case 'finance':
-          return financeSelectedContractor;
-        case 'documents':
-          return documentsSelectedContractor;
-        default:
-          return '';
-      }
-    })();
 
     return (
       <div
@@ -503,20 +376,14 @@ export default function NotificationsPage() {
               <Drawer
                 direction="right"
                 open={isDrawerOpen}
-                onOpenChange={(open) => {
-                  if (open) {
-                    handleDrawerOpen(category);
-                  } else {
-                    handleDrawerClose(category);
-                  }
-                }}
+                onOpenChange={setIsDrawerOpen}
               >
                 <DrawerTrigger asChild>
                   <Button
                     variant="link"
                     size="sm"
                     className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
-                    onClick={() => handleDrawerOpen(category)}
+                    onClick={() => handleDrawerOpen(category, setting)}
                   >
                     {(notification.watchedUsers || []).length > 0
                       ? `${(notification.watchedUsers || []).length} contractor${(notification.watchedUsers || []).length === 1 ? '' : 's'} selected`
@@ -536,7 +403,7 @@ export default function NotificationsPage() {
                         variant="ghost"
                         size="sm"
                         className="h-8 w-8 p-0"
-                        onClick={() => handleDrawerClose(category)}
+                        onClick={handleDrawerClose}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -544,16 +411,30 @@ export default function NotificationsPage() {
                   </DrawerHeader>
                   <div className="p-4 flex-1">
                     <div className="flex flex-col gap-4">
+                      <Select
+                        value={selectedContractor}
+                        onValueChange={handleContractorSelect}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a contractor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredContractors
+                            .filter(
+                              (contractor) =>
+                                !selectedContractors.includes(contractor) &&
+                                !notification.watchedUsers?.includes(
+                                  contractor,
+                                ),
+                            )
+                            .map((contractor) => (
+                              <SelectItem key={contractor} value={contractor}>
+                                {contractor}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between py-2 border-b">
-                          div
-                          <span className="text-sm font-medium text-zinc-600">
-                            Name
-                          </span>
-                          <span className="text-sm font-medium text-zinc-600">
-                            Notification Time
-                          </span>
-                        </div>
                         <div className="space-y-0">
                           {selectedContractors.map((contractor) => (
                             <div
@@ -574,36 +455,11 @@ export default function NotificationsPage() {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      switch (category) {
-                                        case 'company':
-                                          setCompanySelectedContractors(
-                                            companySelectedContractors.filter(
-                                              (c) => c !== contractor,
-                                            ),
-                                          );
-                                          break;
-                                        case 'safety':
-                                          setSafetySelectedContractors(
-                                            safetySelectedContractors.filter(
-                                              (c) => c !== contractor,
-                                            ),
-                                          );
-                                          break;
-                                        case 'finance':
-                                          setFinanceSelectedContractors(
-                                            financeSelectedContractors.filter(
-                                              (c) => c !== contractor,
-                                            ),
-                                          );
-                                          break;
-                                        case 'documents':
-                                          setDocumentsSelectedContractors(
-                                            documentsSelectedContractors.filter(
-                                              (c) => c !== contractor,
-                                            ),
-                                          );
-                                          break;
-                                      }
+                                      setSelectedContractors(
+                                        selectedContractors.filter(
+                                          (c) => c !== contractor,
+                                        ),
+                                      );
                                     }}
                                   >
                                     Remove
@@ -619,10 +475,7 @@ export default function NotificationsPage() {
                   <DrawerFooter className="border-t">
                     <div className="flex justify-end gap-2">
                       <DrawerClose asChild>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleDrawerClose(category)}
-                        >
+                        <Button variant="outline" onClick={handleDrawerClose}>
                           Cancel
                         </Button>
                       </DrawerClose>
@@ -630,7 +483,7 @@ export default function NotificationsPage() {
                         <Button
                           onClick={() => {
                             handleAddContractors(category, setting);
-                            handleDrawerClose(category);
+                            handleDrawerClose();
                           }}
                         >
                           Add Selected
