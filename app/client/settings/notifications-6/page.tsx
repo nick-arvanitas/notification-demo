@@ -93,19 +93,27 @@ const documentCategories = [
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationsState>({
     company: {
-      newAnnouncements: { enabled: true, frequency: 'instant' },
-      policyUpdates: { enabled: true, frequency: 'daily' },
-      teamUpdates: { enabled: false, frequency: 'weekly' },
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      primaryTradeChanges: { enabled: true, frequency: 'instant' },
+      subscriptionExpiring: { enabled: true, frequency: 'instant' },
+      subscriptionExpired: { enabled: true, frequency: 'instant' },
     },
     safety: {
-      incidentReports: { enabled: true, frequency: 'instant' },
-      safetyTraining: { enabled: true, frequency: 'daily' },
-      emergencyAlerts: { enabled: true, frequency: 'instant' },
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      scoreChanges: { enabled: true, frequency: 'instant' },
+      becomesApproved: { enabled: true, frequency: 'instant' },
+      needsApproval: { enabled: true, frequency: 'instant' },
     },
     finance: {
       payrollUpdates: { enabled: true, frequency: 'daily' },
-      expenseApprovals: { enabled: false, frequency: 'instant' },
-      budgetChanges: { enabled: true, frequency: 'weekly' },
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      scoreChanges: { enabled: true, frequency: 'instant' },
+      becomesApproved: { enabled: true, frequency: 'instant' },
+      needsApproval: { enabled: true, frequency: 'instant' },
+      newDocument: { enabled: true, frequency: 'instant' },
     },
     documents: {
       newDocuments: { enabled: true, frequency: 'instant' },
@@ -119,6 +127,11 @@ export default function NotificationsPage() {
         selectedCategories: documentCategories,
       },
       signatureRequests: { enabled: false, frequency: 'instant' },
+    },
+    insurance: {
+      coverageRequirements: { enabled: true, frequency: 'instant' },
+      policyExpiring: { enabled: true, frequency: 'instant' },
+      policyExpired: { enabled: true, frequency: 'instant' },
     },
   });
 
@@ -403,7 +416,7 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <Label className="text-base font-medium text-zinc-600">
-              Receive notifications for...
+              Notify me for...
             </Label>
           </div>
           <div className="flex items-center gap-4">
@@ -619,7 +632,7 @@ export default function NotificationsPage() {
                                 Name
                               </span>
                               <span className="text-sm font-medium text-zinc-600">
-                                Notification Time
+                                Time
                               </span>
                             </div>
                           </div>
@@ -847,9 +860,9 @@ export default function NotificationsPage() {
             <span className="text-lg font-semibold">Company</span>
           </div>
           <div>
-            {renderDocumentScopeSelector('company', 'newAnnouncements')}
+            {renderDocumentScopeSelector('company', 'assessmentsComplete')}
             <AnimatePresence>
-              {notifications.company.newAnnouncements.documentScope !==
+              {notifications.company.assessmentsComplete.documentScope !==
                 'none' && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -860,18 +873,28 @@ export default function NotificationsPage() {
                   <div>
                     {renderNotificationItem(
                       'company',
-                      'newAnnouncements',
-                      'New Announcements',
+                      'assessmentsComplete',
+                      'Company assessments become complete',
                     )}
                     {renderNotificationItem(
                       'company',
-                      'policyUpdates',
-                      'Policy Updates',
+                      'assessmentsIncomplete',
+                      'Company assessments become incomplete',
                     )}
                     {renderNotificationItem(
                       'company',
-                      'teamUpdates',
-                      'Team Updates',
+                      'primaryTradeChanges',
+                      'Primary trade changes',
+                    )}
+                    {renderNotificationItem(
+                      'company',
+                      'subscriptionExpiring',
+                      'Highwire subscription is 30 days from expiration',
+                    )}
+                    {renderNotificationItem(
+                      'company',
+                      'subscriptionExpired',
+                      'Highwire subscription is expired',
                     )}
                   </div>
                 </motion.div>
@@ -885,9 +908,9 @@ export default function NotificationsPage() {
             <span className="text-lg font-semibold">Safety</span>
           </div>
           <div>
-            {renderDocumentScopeSelector('safety', 'incidentReports')}
+            {renderDocumentScopeSelector('safety', 'assessmentsComplete')}
             <AnimatePresence>
-              {notifications.safety.incidentReports.documentScope !==
+              {notifications.safety.assessmentsComplete.documentScope !==
                 'none' && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
@@ -898,18 +921,28 @@ export default function NotificationsPage() {
                   <div>
                     {renderNotificationItem(
                       'safety',
-                      'incidentReports',
-                      'Incident Reports',
+                      'assessmentsComplete',
+                      'Safety assessments become complete',
                     )}
                     {renderNotificationItem(
                       'safety',
-                      'safetyTraining',
-                      'Safety Training',
+                      'assessmentsIncomplete',
+                      'Safety assessments become incomplete',
                     )}
                     {renderNotificationItem(
                       'safety',
-                      'emergencyAlerts',
-                      'Emergency Alerts',
+                      'scoreChanges',
+                      'Safety score changes',
+                    )}
+                    {renderNotificationItem(
+                      'safety',
+                      'becomesApproved',
+                      'Safety becomes approved',
+                    )}
+                    {renderNotificationItem(
+                      'safety',
+                      'needsApproval',
+                      'Safety needs approval',
                     )}
                   </div>
                 </motion.div>
@@ -936,18 +969,71 @@ export default function NotificationsPage() {
                   <div>
                     {renderNotificationItem(
                       'finance',
-                      'payrollUpdates',
-                      'Payroll Updates',
+                      'assessmentsComplete',
+                      'Finance assessments become complete',
                     )}
                     {renderNotificationItem(
                       'finance',
-                      'expenseApprovals',
-                      'Expense Approvals',
+                      'assessmentsIncomplete',
+                      'Finance assessments become incomplete',
                     )}
                     {renderNotificationItem(
                       'finance',
-                      'budgetChanges',
-                      'Budget Changes',
+                      'scoreChanges',
+                      'Finance score changes',
+                    )}
+                    {renderNotificationItem(
+                      'finance',
+                      'becomesApproved',
+                      'Finance becomes approved',
+                    )}
+                    {renderNotificationItem(
+                      'finance',
+                      'needsApproval',
+                      'Finance needs approval',
+                    )}
+                    {renderNotificationItem(
+                      'finance',
+                      'newDocument',
+                      'New financial document is uploaded',
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="transition-shadow">
+          <div className="pt-3 px-1">
+            <span className="text-lg font-semibold">Insurance</span>
+          </div>
+          <div>
+            {renderDocumentScopeSelector('insurance', 'coverageRequirements')}
+            <AnimatePresence>
+              {notifications.insurance.coverageRequirements.documentScope !==
+                'none' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <div>
+                    {renderNotificationItem(
+                      'insurance',
+                      'coverageRequirements',
+                      'Insurance coverage does not meet requirements',
+                    )}
+                    {renderNotificationItem(
+                      'insurance',
+                      'policyExpiring',
+                      'Insurance policy is 30 days from expiration',
+                    )}
+                    {renderNotificationItem(
+                      'insurance',
+                      'policyExpired',
+                      'Insurance policy is expired',
                     )}
                   </div>
                 </motion.div>
@@ -975,7 +1061,7 @@ export default function NotificationsPage() {
                     {renderNotificationItem(
                       'documents',
                       'documentExpirations',
-                      'Notifications by document category',
+                      'Notify me about documents in...',
                     )}
                     {renderNotificationItem(
                       'documents',
