@@ -38,6 +38,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
 type DocumentNotificationScope = 'all' | 'myProjects' | 'custom' | 'none';
 type DocumentCategoryScope = 'all' | 'custom';
+type DocumentCategoryNotificationTime =
+  | 'onExpiration'
+  | '7days'
+  | '14days'
+  | '30days'
+  | '90days';
 
 interface NotificationSetting {
   enabled: boolean;
@@ -46,6 +52,7 @@ interface NotificationSetting {
   documentScope?: DocumentNotificationScope;
   documentCategoryScope?: DocumentCategoryScope;
   selectedCategories?: string[];
+  categoryNotificationTimes?: Record<string, DocumentCategoryNotificationTime>;
 }
 
 interface NotificationGroup {
@@ -68,6 +75,16 @@ const MOCK_CONTRACTORS = [
   'Master Builders Group',
   'First Class Construction',
   'Top Tier Contractors',
+];
+
+const documentCategories = [
+  'Insurance Certificates',
+  'Safety Training',
+  'Licenses',
+  'Certifications',
+  'Compliance Documents',
+  'Contracts',
+  'Other',
 ];
 
 export default function NotificationsPage() {
@@ -96,7 +113,7 @@ export default function NotificationsPage() {
         watchedUsers: [],
         documentScope: 'all',
         documentCategoryScope: 'all',
-        selectedCategories: [],
+        selectedCategories: documentCategories,
       },
       signatureRequests: { enabled: false, frequency: 'instant' },
     },
@@ -108,7 +125,20 @@ export default function NotificationsPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCategoriesDrawerOpen, setIsCategoriesDrawerOpen] = useState(false);
   const [newUser, setNewUser] = useState<string>('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const [selectedCategories, setSelectedCategories] =
+    useState<string[]>(documentCategories);
+  const [categoryNotificationTimes, setCategoryNotificationTimes] = useState<
+    Record<string, DocumentCategoryNotificationTime>
+  >(
+    documentCategories.reduce(
+      (acc, category) => ({
+        ...acc,
+        [category]: 'onExpiration',
+      }),
+      {},
+    ),
+  );
 
   // Add state for each instance of document scope selector
   const [companyDrawerOpen, setCompanyDrawerOpen] = useState(false);
@@ -136,16 +166,6 @@ export default function NotificationsPage() {
     useState<string>('');
   const [documentsSelectedContractor, setDocumentsSelectedContractor] =
     useState<string>('');
-
-  const documentCategories = [
-    'Insurance Certificates',
-    'Safety Training',
-    'Licenses',
-    'Certifications',
-    'Compliance Documents',
-    'Contracts',
-    'Other',
-  ];
 
   const handleToggle = (category: string, setting: string) => {
     setNotifications((prev) => ({
@@ -222,6 +242,16 @@ export default function NotificationsPage() {
     setSelectedCategories([]);
   };
 
+  const handleCategoryTimeChange = (
+    category: string,
+    time: DocumentCategoryNotificationTime,
+  ) => {
+    setCategoryNotificationTimes((prev) => ({
+      ...prev,
+      [category]: time,
+    }));
+  };
+
   const handleAddCategories = (category: string, setting: string) => {
     setNotifications((prev) => ({
       ...prev,
@@ -230,6 +260,7 @@ export default function NotificationsPage() {
         [setting]: {
           ...prev[category][setting],
           selectedCategories: selectedCategories,
+          categoryNotificationTimes: categoryNotificationTimes,
         },
       },
     }));
@@ -513,32 +544,16 @@ export default function NotificationsPage() {
                   </DrawerHeader>
                   <div className="p-4 flex-1">
                     <div className="flex flex-col gap-4">
-                      <Select
-                        value={selectedContractor}
-                        onValueChange={(value) =>
-                          handleContractorSelect(value, category)
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a contractor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredContractors
-                            .filter(
-                              (contractor) =>
-                                !selectedContractors.includes(contractor) &&
-                                !notification.watchedUsers?.includes(
-                                  contractor,
-                                ),
-                            )
-                            .map((contractor) => (
-                              <SelectItem key={contractor} value={contractor}>
-                                {contractor}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
                       <div className="space-y-2">
+                        <div className="flex items-center justify-between py-2 border-b">
+                          div
+                          <span className="text-sm font-medium text-zinc-600">
+                            Name
+                          </span>
+                          <span className="text-sm font-medium text-zinc-600">
+                            Notification Time
+                          </span>
+                        </div>
                         <div className="space-y-0">
                           {selectedContractors.map((contractor) => (
                             <div
@@ -668,117 +683,143 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-4">
             {category === 'documents' && setting === 'documentExpirations' ? (
               <div className="flex items-center gap-4">
-                {notification.documentCategoryScope === 'custom' && (
-                  <Drawer
-                    direction="right"
-                    open={isCategoriesDrawerOpen}
-                    onOpenChange={setIsCategoriesDrawerOpen}
-                  >
-                    <DrawerTrigger asChild>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
-                        onClick={() =>
-                          handleCategoriesDrawerOpen(category, setting)
-                        }
-                      >
-                        {(notification.selectedCategories || []).length > 0
-                          ? `${(notification.selectedCategories || []).length} categor${(notification.selectedCategories || []).length === 1 ? 'y' : 'ies'} selected`
-                          : 'Add Categories'}
-                      </Button>
-                    </DrawerTrigger>
-                    <DrawerContent className="w-[620px] !max-w-[620px]">
-                      <DrawerHeader className="border-b">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <DrawerTitle>Add Categories</DrawerTitle>
-                            <DrawerDescription>
-                              Select document categories to receive
-                              notifications for
-                            </DrawerDescription>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={handleCategoriesDrawerClose}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                <Drawer
+                  direction="right"
+                  open={isCategoriesDrawerOpen}
+                  onOpenChange={setIsCategoriesDrawerOpen}
+                >
+                  <DrawerTrigger asChild>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
+                      onClick={() =>
+                        handleCategoriesDrawerOpen(category, setting)
+                      }
+                    >
+                      {notifications[category][setting].selectedCategories
+                        ?.length || 0}{' '}
+                      categories selected
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent className="w-[620px] !max-w-[620px]">
+                    <DrawerHeader className="border-b">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <DrawerTitle>Edit Categories</DrawerTitle>
+                          <DrawerDescription>
+                            Select document categories to receive notifications
+                            for
+                          </DrawerDescription>
                         </div>
-                      </DrawerHeader>
-                      <div className="p-4 flex-1">
-                        <div className="flex flex-col gap-4">
-                          <div className="space-y-2">
-                            <div className="space-y-0">
-                              {documentCategories.map((category) => (
-                                <div
-                                  key={category}
-                                  className="flex items-center justify-between py-2 border-b last:border-b-0"
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={category}
-                                      checked={selectedCategories.includes(
-                                        category,
-                                      )}
-                                      onCheckedChange={() =>
-                                        toggleCategory(category)
-                                      }
-                                    />
-                                    <Label
-                                      htmlFor={category}
-                                      className="text-sm"
-                                    >
-                                      {category}
-                                    </Label>
-                                  </div>
-                                </div>
-                              ))}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={handleCategoriesDrawerClose}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </DrawerHeader>
+                    <div className="p-4 flex-1">
+                      <div className="flex flex-col gap-4">
+                        <div className="space-y-2">
+                          <div className="py-2 border-b">
+                            <div className="px-2 flex items-center gap-2 justify-between">
+                              <span className="text-sm font-medium text-zinc-600">
+                                Name
+                              </span>
+                              <span className="text-sm font-medium text-zinc-600">
+                                Notification Time
+                              </span>
                             </div>
+                          </div>
+                          <div className="space-y-0">
+                            {documentCategories.map((category) => (
+                              <div
+                                key={category}
+                                className="flex items-center justify-between py-2 border-b last:border-b-0"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={category}
+                                    checked={selectedCategories.includes(
+                                      category,
+                                    )}
+                                    onCheckedChange={() =>
+                                      toggleCategory(category)
+                                    }
+                                  />
+                                  <Label htmlFor={category} className="text-sm">
+                                    {category}
+                                  </Label>
+                                </div>
+                                <Select
+                                  value={
+                                    categoryNotificationTimes[category] ||
+                                    'onExpiration'
+                                  }
+                                  onValueChange={(
+                                    value: DocumentCategoryNotificationTime,
+                                  ) =>
+                                    handleCategoryTimeChange(category, value)
+                                  }
+                                  disabled={
+                                    !selectedCategories.includes(category)
+                                  }
+                                >
+                                  <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select time" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="onExpiration">
+                                      When expired
+                                    </SelectItem>
+                                    <SelectItem value="7days">
+                                      7 days before
+                                    </SelectItem>
+                                    <SelectItem value="14days">
+                                      14 days before
+                                    </SelectItem>
+                                    <SelectItem value="30days">
+                                      30 days before
+                                    </SelectItem>
+                                    <SelectItem value="90days">
+                                      90 days before
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
-                      <DrawerFooter className="border-t">
-                        <div className="flex justify-end gap-2">
-                          <DrawerClose asChild>
-                            <Button
-                              variant="outline"
-                              onClick={handleCategoriesDrawerClose}
-                            >
-                              Cancel
-                            </Button>
-                          </DrawerClose>
-                          <DrawerClose asChild>
-                            <Button
-                              onClick={() => {
-                                handleAddCategories(category, setting);
-                                handleCategoriesDrawerClose();
-                              }}
-                            >
-                              Add Selected
-                            </Button>
-                          </DrawerClose>
-                        </div>
-                      </DrawerFooter>
-                    </DrawerContent>
-                  </Drawer>
-                )}
-                <Select
-                  value={notification.documentCategoryScope || 'all'}
-                  onValueChange={(value: DocumentCategoryScope) =>
-                    handleCategoryScopeChange(category, setting, value)
-                  }
-                >
-                  <SelectTrigger className="w-[220px]">
-                    <SelectValue placeholder="Select categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
+                    </div>
+                    <DrawerFooter className="border-t">
+                      <div className="flex justify-end gap-2">
+                        <DrawerClose asChild>
+                          <Button
+                            variant="outline"
+                            onClick={handleCategoriesDrawerClose}
+                          >
+                            Cancel
+                          </Button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                          <Button
+                            onClick={() => {
+                              handleAddCategories(category, setting);
+                              handleCategoriesDrawerClose();
+                            }}
+                          >
+                            Update
+                          </Button>
+                        </DrawerClose>
+                      </div>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
               </div>
             ) : (
               <>
@@ -954,7 +995,7 @@ export default function NotificationsPage() {
                     {renderNotificationItem(
                       'documents',
                       'documentExpirations',
-                      'Be notified about...',
+                      'Notifications by document category',
                     )}
                     {renderNotificationItem(
                       'documents',
