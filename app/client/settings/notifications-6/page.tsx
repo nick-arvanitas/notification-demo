@@ -661,53 +661,8 @@ export default function NotificationsPage() {
                                     {category}
                                   </Label>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {categoryNotificationTimes[
-                                    category
-                                  ]?.includes('custom') && (
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          className="w-[180px] justify-between"
-                                          disabled={
-                                            !selectedCategories.includes(
-                                              category,
-                                            )
-                                          }
-                                        >
-                                          {categoryCustomDates[category]?.length
-                                            ? `${categoryCustomDates[category].length} custom date${
-                                                categoryCustomDates[category]
-                                                  .length === 1
-                                                  ? ''
-                                                  : 's'
-                                              }`
-                                            : 'Select dates'}
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent
-                                        className="w-auto p-0"
-                                        align="start"
-                                      >
-                                        <Calendar
-                                          mode="multiple"
-                                          selected={
-                                            categoryCustomDates[category]
-                                          }
-                                          onSelect={(dates) =>
-                                            handleCustomDateChange(
-                                              category,
-                                              dates || [],
-                                            )
-                                          }
-                                          initialFocus
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
-                                  )}
-                                  <DropdownMenu modal={false}>
+                                <div className="flex items-center justify-between">
+                                  <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button
                                         variant="outline"
@@ -719,13 +674,31 @@ export default function NotificationsPage() {
                                       >
                                         {categoryNotificationTimes[category]
                                           ?.length
-                                          ? `${categoryNotificationTimes[category].length} option${
-                                              categoryNotificationTimes[
-                                                category
-                                              ].length === 1
-                                                ? ''
-                                                : 's'
-                                            } selected`
+                                          ? categoryNotificationTimes[category]
+                                              .length > 1
+                                            ? `${categoryNotificationTimes[category].length} options selected`
+                                            : (() => {
+                                                const time =
+                                                  categoryNotificationTimes[
+                                                    category
+                                                  ][0];
+                                                switch (time) {
+                                                  case 'onExpiration':
+                                                    return 'When expired';
+                                                  case '7days':
+                                                    return '7 days before';
+                                                  case '14days':
+                                                    return '14 days before';
+                                                  case '30days':
+                                                    return '30 days before';
+                                                  case '90days':
+                                                    return '90 days before';
+                                                  case 'custom':
+                                                    return 'Custom date';
+                                                  default:
+                                                    return time;
+                                                }
+                                              })()
                                           : 'Select times'}
                                         <ChevronDown className="ml-2 h-4 w-4" />
                                       </Button>
@@ -733,19 +706,22 @@ export default function NotificationsPage() {
                                     <DropdownMenuContent
                                       align="end"
                                       className="w-[180px]"
+                                      onCloseAutoFocus={(e) =>
+                                        e.preventDefault()
+                                      }
                                     >
                                       <DropdownMenuCheckboxItem
                                         checked={categoryNotificationTimes[
                                           category
                                         ]?.includes('onExpiration')}
-                                        onCheckedChange={(checked) => {
+                                        onSelect={(e) => e.preventDefault()}
+                                        onCheckedChange={(checked) =>
                                           handleCategoryTimeChange(
                                             category,
                                             'onExpiration',
                                             checked,
-                                          );
-                                          return false;
-                                        }}
+                                          )
+                                        }
                                       >
                                         When expired
                                       </DropdownMenuCheckboxItem>
@@ -753,14 +729,14 @@ export default function NotificationsPage() {
                                         checked={categoryNotificationTimes[
                                           category
                                         ]?.includes('7days')}
-                                        onCheckedChange={(checked) => {
+                                        onSelect={(e) => e.preventDefault()}
+                                        onCheckedChange={(checked) =>
                                           handleCategoryTimeChange(
                                             category,
                                             '7days',
                                             checked,
-                                          );
-                                          return false;
-                                        }}
+                                          )
+                                        }
                                       >
                                         7 days before
                                       </DropdownMenuCheckboxItem>
@@ -768,14 +744,14 @@ export default function NotificationsPage() {
                                         checked={categoryNotificationTimes[
                                           category
                                         ]?.includes('14days')}
-                                        onCheckedChange={(checked) => {
+                                        onSelect={(e) => e.preventDefault()}
+                                        onCheckedChange={(checked) =>
                                           handleCategoryTimeChange(
                                             category,
                                             '14days',
                                             checked,
-                                          );
-                                          return false;
-                                        }}
+                                          )
+                                        }
                                       >
                                         14 days before
                                       </DropdownMenuCheckboxItem>
@@ -783,14 +759,14 @@ export default function NotificationsPage() {
                                         checked={categoryNotificationTimes[
                                           category
                                         ]?.includes('30days')}
-                                        onCheckedChange={(checked) => {
+                                        onSelect={(e) => e.preventDefault()}
+                                        onCheckedChange={(checked) =>
                                           handleCategoryTimeChange(
                                             category,
                                             '30days',
                                             checked,
-                                          );
-                                          return false;
-                                        }}
+                                          )
+                                        }
                                       >
                                         30 days before
                                       </DropdownMenuCheckboxItem>
@@ -798,31 +774,16 @@ export default function NotificationsPage() {
                                         checked={categoryNotificationTimes[
                                           category
                                         ]?.includes('90days')}
-                                        onCheckedChange={(checked) => {
+                                        onSelect={(e) => e.preventDefault()}
+                                        onCheckedChange={(checked) =>
                                           handleCategoryTimeChange(
                                             category,
                                             '90days',
                                             checked,
-                                          );
-                                          return false;
-                                        }}
+                                          )
+                                        }
                                       >
                                         90 days before
-                                      </DropdownMenuCheckboxItem>
-                                      <DropdownMenuCheckboxItem
-                                        checked={categoryNotificationTimes[
-                                          category
-                                        ]?.includes('custom')}
-                                        onCheckedChange={(checked) => {
-                                          handleCategoryTimeChange(
-                                            category,
-                                            'custom',
-                                            checked,
-                                          );
-                                          return false;
-                                        }}
-                                      >
-                                        Custom dates
                                       </DropdownMenuCheckboxItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
