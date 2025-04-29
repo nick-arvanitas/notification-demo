@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
 type DocumentNotificationScope = 'all' | 'myProjects' | 'custom' | 'none';
@@ -88,6 +89,7 @@ export default function NotificationsPage() {
     },
     documents: {
       newDocuments: { enabled: true, frequency: 'instant' },
+      documentExpired: { enabled: true, frequency: 'instant' },
       documentExpirations: {
         enabled: true,
         frequency: 'daily',
@@ -456,7 +458,9 @@ export default function NotificationsPage() {
     })();
 
     return (
-      <div className="flex flex-col gap-y-2 px-1 py-2 border-b last:border-b-0">
+      <div
+        className={`flex flex-col gap-y-2 px-1 py-2 ${notification.documentScope !== 'none' ? 'border-b' : ''}`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <Label className="text-base font-medium text-zinc-600">
@@ -653,11 +657,6 @@ export default function NotificationsPage() {
   ) => {
     const notification = notifications[category][setting];
 
-    // Hide notification items if "No Contractors" is selected
-    if (notification.documentScope === 'none') {
-      return null;
-    }
-
     return (
       <div className="flex flex-col gap-y-2 px-1 py-2 border-b last:border-b-0">
         <div className="flex items-center justify-between">
@@ -667,288 +666,310 @@ export default function NotificationsPage() {
             </Label>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Label className="text-sm text-zinc-600">
-                Notification Center
-              </Label>
-              <Switch
-                checked={notification.enabled}
-                onCheckedChange={() => handleToggle(category, setting)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm text-zinc-600">Email</Label>
-              <Select
-                value={notification.frequency}
-                onValueChange={(value: NotificationFrequency) =>
-                  handleFrequencyChange(category, setting, value)
-                }
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instant">Instant</SelectItem>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="never">Never</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-        {category === 'documents' && setting === 'documentExpirations' && (
-          <div className="mt-2">
-            <Label className="block mb-2 text-base text-zinc-700 font-medium">
-              Be notified about...
-            </Label>
-            <RadioGroup
-              value={notification.documentCategoryScope || 'all'}
-              onValueChange={(value: DocumentCategoryScope) =>
-                handleCategoryScopeChange(category, setting, value)
-              }
-              className="flex flex-col gap-2 text-zinc-600"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="all" id="all-categories" />
-                <Label htmlFor="all-categories" className="text-sm">
-                  All Categories
-                </Label>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="custom-categories" />
-                  <Label htmlFor="custom-categories" className="text-sm">
-                    Custom
-                  </Label>
-                </div>
+            {category === 'documents' && setting === 'documentExpirations' ? (
+              <div className="flex items-center gap-4">
                 {notification.documentCategoryScope === 'custom' && (
-                  <div className="ml-6">
-                    <div className="flex items-center justify-between mb-1">
-                      <Label className="text-sm font-medium">
-                        Notify me about these categories
-                      </Label>
-                    </div>
-                    <Drawer
-                      direction="right"
-                      open={isCategoriesDrawerOpen}
-                      onOpenChange={setIsCategoriesDrawerOpen}
-                    >
-                      <DrawerTrigger asChild>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
-                          onClick={() =>
-                            handleCategoriesDrawerOpen(category, setting)
-                          }
-                        >
-                          {(notification.selectedCategories || []).length > 0
-                            ? `${(notification.selectedCategories || []).length} categor${(notification.selectedCategories || []).length === 1 ? 'y' : 'ies'} selected`
-                            : 'Add Categories'}
-                        </Button>
-                      </DrawerTrigger>
-                      <DrawerContent className="w-[620px] !max-w-[620px]">
-                        <DrawerHeader className="border-b">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <DrawerTitle>Add Categories</DrawerTitle>
-                              <DrawerDescription>
-                                Select document categories to receive
-                                notifications for
-                              </DrawerDescription>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={handleCategoriesDrawerClose}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+                  <Drawer
+                    direction="right"
+                    open={isCategoriesDrawerOpen}
+                    onOpenChange={setIsCategoriesDrawerOpen}
+                  >
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
+                        onClick={() =>
+                          handleCategoriesDrawerOpen(category, setting)
+                        }
+                      >
+                        {(notification.selectedCategories || []).length > 0
+                          ? `${(notification.selectedCategories || []).length} categor${(notification.selectedCategories || []).length === 1 ? 'y' : 'ies'} selected`
+                          : 'Add Categories'}
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent className="w-[620px] !max-w-[620px]">
+                      <DrawerHeader className="border-b">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <DrawerTitle>Add Categories</DrawerTitle>
+                            <DrawerDescription>
+                              Select document categories to receive
+                              notifications for
+                            </DrawerDescription>
                           </div>
-                        </DrawerHeader>
-                        <div className="p-4 flex-1">
-                          <div className="flex flex-col gap-4">
-                            <div className="space-y-2">
-                              <div className="space-y-0">
-                                {documentCategories.map((category) => (
-                                  <div
-                                    key={category}
-                                    className="flex items-center justify-between py-2 border-b last:border-b-0"
-                                  >
-                                    <div className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={category}
-                                        checked={selectedCategories.includes(
-                                          category,
-                                        )}
-                                        onCheckedChange={() =>
-                                          toggleCategory(category)
-                                        }
-                                      />
-                                      <Label
-                                        htmlFor={category}
-                                        className="text-sm"
-                                      >
-                                        {category}
-                                      </Label>
-                                    </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={handleCategoriesDrawerClose}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </DrawerHeader>
+                      <div className="p-4 flex-1">
+                        <div className="flex flex-col gap-4">
+                          <div className="space-y-2">
+                            <div className="space-y-0">
+                              {documentCategories.map((category) => (
+                                <div
+                                  key={category}
+                                  className="flex items-center justify-between py-2 border-b last:border-b-0"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={category}
+                                      checked={selectedCategories.includes(
+                                        category,
+                                      )}
+                                      onCheckedChange={() =>
+                                        toggleCategory(category)
+                                      }
+                                    />
+                                    <Label
+                                      htmlFor={category}
+                                      className="text-sm"
+                                    >
+                                      {category}
+                                    </Label>
                                   </div>
-                                ))}
-                              </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
-                        <DrawerFooter className="border-t">
-                          <div className="flex justify-end gap-2">
-                            <DrawerClose asChild>
-                              <Button
-                                variant="outline"
-                                onClick={handleCategoriesDrawerClose}
-                              >
-                                Cancel
-                              </Button>
-                            </DrawerClose>
-                            <DrawerClose asChild>
-                              <Button
-                                onClick={() => {
-                                  handleAddCategories(category, setting);
-                                  handleCategoriesDrawerClose();
-                                }}
-                              >
-                                Add Selected
-                              </Button>
-                            </DrawerClose>
-                          </div>
-                        </DrawerFooter>
-                      </DrawerContent>
-                    </Drawer>
-                  </div>
+                      </div>
+                      <DrawerFooter className="border-t">
+                        <div className="flex justify-end gap-2">
+                          <DrawerClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={handleCategoriesDrawerClose}
+                            >
+                              Cancel
+                            </Button>
+                          </DrawerClose>
+                          <DrawerClose asChild>
+                            <Button
+                              onClick={() => {
+                                handleAddCategories(category, setting);
+                                handleCategoriesDrawerClose();
+                              }}
+                            >
+                              Add Selected
+                            </Button>
+                          </DrawerClose>
+                        </div>
+                      </DrawerFooter>
+                    </DrawerContent>
+                  </Drawer>
                 )}
+                <Select
+                  value={notification.documentCategoryScope || 'all'}
+                  onValueChange={(value: DocumentCategoryScope) =>
+                    handleCategoryScopeChange(category, setting, value)
+                  }
+                >
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Select categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </RadioGroup>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-zinc-600">
+                    Notification Center
+                  </Label>
+                  <Switch
+                    checked={notification.enabled}
+                    onCheckedChange={() => handleToggle(category, setting)}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-zinc-600">Email</Label>
+                  <Select
+                    value={notification.frequency}
+                    onValueChange={(value: NotificationFrequency) =>
+                      handleFrequencyChange(category, setting, value)
+                    }
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="instant">Instant</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="never">Never</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="max-w-screen-xl">
+    <div className="max-w-screen-xl mb-10">
       <div className="flex flex-col gap-6">
         <div className="transition-shadow">
           <div className="pt-3 px-1">
-            <span className="text-lg font-semibold">Company Notifications</span>
+            <span className="text-lg font-semibold">Company</span>
           </div>
           <div>
             {renderDocumentScopeSelector('company', 'newAnnouncements')}
-            {notifications.company.newAnnouncements.documentScope !==
-              'none' && (
-              <>
-                {renderNotificationItem(
-                  'company',
-                  'newAnnouncements',
-                  'New Announcements',
-                )}
-                {renderNotificationItem(
-                  'company',
-                  'policyUpdates',
-                  'Policy Updates',
-                )}
-                {renderNotificationItem(
-                  'company',
-                  'teamUpdates',
-                  'Team Updates',
-                )}
-              </>
-            )}
+            <AnimatePresence>
+              {notifications.company.newAnnouncements.documentScope !==
+                'none' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <div>
+                    {renderNotificationItem(
+                      'company',
+                      'newAnnouncements',
+                      'New Announcements',
+                    )}
+                    {renderNotificationItem(
+                      'company',
+                      'policyUpdates',
+                      'Policy Updates',
+                    )}
+                    {renderNotificationItem(
+                      'company',
+                      'teamUpdates',
+                      'Team Updates',
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         <div className="transition-shadow">
           <div className="pt-3 px-1">
-            <span className="text-lg font-semibold">Safety Notifications</span>
+            <span className="text-lg font-semibold">Safety</span>
           </div>
           <div>
             {renderDocumentScopeSelector('safety', 'incidentReports')}
-            {notifications.safety.incidentReports.documentScope !== 'none' && (
-              <>
-                {renderNotificationItem(
-                  'safety',
-                  'incidentReports',
-                  'Incident Reports',
-                )}
-                {renderNotificationItem(
-                  'safety',
-                  'safetyTraining',
-                  'Safety Training',
-                )}
-                {renderNotificationItem(
-                  'safety',
-                  'emergencyAlerts',
-                  'Emergency Alerts',
-                )}
-              </>
-            )}
+            <AnimatePresence>
+              {notifications.safety.incidentReports.documentScope !==
+                'none' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <div>
+                    {renderNotificationItem(
+                      'safety',
+                      'incidentReports',
+                      'Incident Reports',
+                    )}
+                    {renderNotificationItem(
+                      'safety',
+                      'safetyTraining',
+                      'Safety Training',
+                    )}
+                    {renderNotificationItem(
+                      'safety',
+                      'emergencyAlerts',
+                      'Emergency Alerts',
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         <div className="transition-shadow">
           <div className="pt-3 px-1">
-            <span className="text-lg font-semibold">Finance Notifications</span>
+            <span className="text-lg font-semibold">Finance</span>
           </div>
           <div>
             {renderDocumentScopeSelector('finance', 'payrollUpdates')}
-            {notifications.finance.payrollUpdates.documentScope !== 'none' && (
-              <>
-                {renderNotificationItem(
-                  'finance',
-                  'payrollUpdates',
-                  'Payroll Updates',
-                )}
-                {renderNotificationItem(
-                  'finance',
-                  'expenseApprovals',
-                  'Expense Approvals',
-                )}
-                {renderNotificationItem(
-                  'finance',
-                  'budgetChanges',
-                  'Budget Changes',
-                )}
-              </>
-            )}
+            <AnimatePresence>
+              {notifications.finance.payrollUpdates.documentScope !==
+                'none' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <div>
+                    {renderNotificationItem(
+                      'finance',
+                      'payrollUpdates',
+                      'Payroll Updates',
+                    )}
+                    {renderNotificationItem(
+                      'finance',
+                      'expenseApprovals',
+                      'Expense Approvals',
+                    )}
+                    {renderNotificationItem(
+                      'finance',
+                      'budgetChanges',
+                      'Budget Changes',
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         <div className="transition-shadow">
           <div className="pt-3 px-1">
-            <span className="text-lg font-semibold">
-              Document Notifications
-            </span>
+            <span className="text-lg font-semibold">Documents</span>
           </div>
           <div>
             {renderDocumentScopeSelector('documents', 'newDocuments')}
-            {notifications.documents.newDocuments.documentScope !== 'none' && (
-              <>
-                {renderNotificationItem(
-                  'documents',
-                  'newDocuments',
-                  'New Documents',
-                )}
-                {renderNotificationItem(
-                  'documents',
-                  'documentExpirations',
-                  'Contractor document expires',
-                )}
-                {renderNotificationItem(
-                  'documents',
-                  'signatureRequests',
-                  'Signature Requests',
-                )}
-              </>
-            )}
+            <AnimatePresence>
+              {notifications.documents.newDocuments.documentScope !==
+                'none' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                >
+                  <div>
+                    {renderNotificationItem(
+                      'documents',
+                      'documentExpirations',
+                      'Be notified about...',
+                    )}
+                    {renderNotificationItem(
+                      'documents',
+                      'documentExpired',
+                      'Contractor document expired',
+                    )}
+                    {renderNotificationItem(
+                      'documents',
+                      'newDocuments',
+                      'New document added',
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
