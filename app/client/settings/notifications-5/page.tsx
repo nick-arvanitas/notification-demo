@@ -1,27 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  X,
-  Search,
-  Plus,
-  MoreVertical,
-  MoreHorizontal,
-  ChevronDown,
-} from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Drawer,
   DrawerClose,
@@ -32,24 +13,31 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
-import { div } from 'framer-motion/client';
-import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, MoreHorizontal, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
 type DocumentNotificationScope = 'all' | 'myProjects' | 'custom' | 'none';
