@@ -333,7 +333,7 @@ const DocumentNotifications = ({
           >
             <ChevronRight className="size-5" />
           </motion.div>
-          <div className="font-medium">Documents removed</div>
+          <div className="font-medium">Documents expired</div>
         </motion.div>
         <AnimatePresence>
           {expandedRemoved && (
