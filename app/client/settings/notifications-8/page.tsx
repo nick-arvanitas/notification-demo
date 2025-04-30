@@ -50,7 +50,7 @@ const NotificationHeader = ({
       {isDocuments ? 'Category' : 'Name'}
     </div>
     <div className="text-sm font-bold text-zinc-900">
-      {isDocuments ? 'Frequency' : 'Scope'}
+      {isDocuments ? 'Delivery' : 'Scope'}
     </div>
     <div className="text-sm text-center font-bold text-zinc-900">
       Notification
@@ -259,23 +259,50 @@ const DocumentNotifications = ({
         </div>
         {expandedAdded && (
           <>
-            <NotificationHeader isDocuments={true} />
-
+            <div
+              className={`grid grid-cols-[1fr_100px_150px] items-center gap-4 pl-8 pb-1 pt-3`}
+            >
+              <div className="text-sm font-bold text-zinc-900">Category</div>
+              <div className="text-sm text-center font-bold text-zinc-900">
+                Notification
+              </div>
+              <div className="text-sm font-bold text-zinc-900">Email</div>
+            </div>
             <div className="pl-8">
               {documentCategories.map((category) => (
-                <DocumentNotificationItem
+                <div
                   key={category}
-                  category={category}
-                  notification={notifications.documentExpirations}
-                  onToggle={() => onToggle(category)}
-                  onEmailToggle={() => onEmailToggle(category)}
-                  onScopeChange={(scope, checked) =>
-                    onScopeChange(category, scope, checked)
-                  }
-                  onFrequencyChange={(frequency, checked) =>
-                    onFrequencyChange(category, frequency, checked)
-                  }
-                />
+                  className="grid grid-cols-[1fr_100px_150px] gap-4 items-center py-2"
+                >
+                  <div className="font-medium">{category}</div>
+                  <div className="flex justify-center">
+                    <Switch
+                      checked={
+                        notifications.documentExpirations.categoryEnabled?.[
+                          category
+                        ]
+                      }
+                      onCheckedChange={() => onToggle(category)}
+                    />
+                  </div>
+                  <div>
+                    <Select
+                      value={notifications.documentExpirations.frequency}
+                      onValueChange={(value: NotificationFrequency) =>
+                        onEmailToggle(category)
+                      }
+                    >
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="instant">Instant</SelectItem>
+                        <SelectItem value="daily">Daily Digest</SelectItem>
+                        <SelectItem value="weekly">Weekly Digest</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               ))}
             </div>
           </>
