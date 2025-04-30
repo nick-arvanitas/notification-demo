@@ -1141,7 +1141,7 @@ export default function NotificationsPage() {
     const notification = notifications[category][setting];
 
     return (
-      <div className="flex flex-col gap-y-2">
+      <div className="flex flex-col gap-y-2 px-1 py-2">
         {category === 'documents' && setting === 'documentExpirations' ? (
           <DocumentNotifications
             notifications={notifications.documents}
