@@ -37,6 +37,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const NotificationHeader = ({
   isDocuments = false,
@@ -246,104 +247,129 @@ const DocumentNotifications = ({
     <div className="flex flex-col gap-y-2">
       {/* Documents Added Section */}
       <div>
-        <div
+        <motion.div
           className="flex gap-x-2 items-center px-1 py-2 cursor-pointer text-zinc-600 hover:text-zince-900"
           onClick={() => setExpandedAdded(!expandedAdded)}
         >
-          <div className="flex items-center">
-            <ChevronRight
-              className={`size-5 transition-transform ${expandedAdded ? 'rotate-90' : ''}`}
-            />
-          </div>
+          <motion.div
+            animate={{ rotate: expandedAdded ? 90 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronRight className="size-5" />
+          </motion.div>
           <div className="font-medium">Documents added</div>
-        </div>
-        {expandedAdded && (
-          <>
-            <div
-              className={`grid grid-cols-[1fr_100px_150px] items-center gap-4 pl-8 pb-1 pt-3`}
+        </motion.div>
+        <AnimatePresence>
+          {expandedAdded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <div className="text-sm font-bold text-zinc-900">Category</div>
-              <div className="text-sm text-center font-bold text-zinc-900">
-                Notification
-              </div>
-              <div className="text-sm font-bold text-zinc-900">Email</div>
-            </div>
-            <div className="pl-8">
-              {documentCategories.map((category) => (
-                <div
-                  key={category}
-                  className="grid grid-cols-[1fr_100px_150px] gap-4 items-center py-2"
-                >
-                  <div className="font-medium">{category}</div>
-                  <div className="flex justify-center">
-                    <Switch
-                      checked={
-                        notifications.documentExpirations.categoryEnabled?.[
-                          category
-                        ]
-                      }
-                      onCheckedChange={() => onToggle(category)}
-                    />
-                  </div>
-                  <div>
-                    <Select
-                      value={notifications.documentExpirations.frequency}
-                      onValueChange={(value: NotificationFrequency) =>
-                        onEmailToggle(category)
-                      }
-                    >
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue placeholder="Frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="instant">Instant</SelectItem>
-                        <SelectItem value="daily">Daily Digest</SelectItem>
-                        <SelectItem value="weekly">Weekly Digest</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div
+                className={`grid grid-cols-[1fr_100px_150px] items-center gap-4 pl-8 pb-1 pt-3`}
+              >
+                <div className="text-sm font-bold text-zinc-900">Category</div>
+                <div className="text-sm text-center font-bold text-zinc-900">
+                  Notification
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+                <div className="text-sm font-bold text-zinc-900">Email</div>
+              </div>
+              <div className="pl-8">
+                {documentCategories.map((category) => (
+                  <motion.div
+                    key={category}
+                    className="grid grid-cols-[1fr_100px_150px] gap-4 items-center py-2"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="font-medium">{category}</div>
+                    <div className="flex justify-center">
+                      <Switch
+                        checked={
+                          notifications.documentExpirations.categoryEnabled?.[
+                            category
+                          ]
+                        }
+                        onCheckedChange={() => onToggle(category)}
+                      />
+                    </div>
+                    <div>
+                      <Select
+                        value={notifications.documentExpirations.frequency}
+                        onValueChange={(value: NotificationFrequency) =>
+                          onEmailToggle(category)
+                        }
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Frequency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="instant">Instant</SelectItem>
+                          <SelectItem value="daily">Daily Digest</SelectItem>
+                          <SelectItem value="weekly">Weekly Digest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Documents Removed Section */}
       <div>
-        <div
+        <motion.div
           className="flex gap-x-2 items-center px-1 py-2 cursor-pointer text-zinc-600 hover:text-zince-900"
           onClick={() => setExpandedRemoved(!expandedRemoved)}
         >
-          <div className="flex items-center">
-            <ChevronRight
-              className={`size-5 transition-transform ${expandedRemoved ? 'rotate-90' : ''}`}
-            />
-          </div>
+          <motion.div
+            animate={{ rotate: expandedRemoved ? 90 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronRight className="size-5" />
+          </motion.div>
           <div className="font-medium">Documents removed</div>
-        </div>
-        {expandedRemoved && (
-          <>
-            <NotificationHeader isDocuments={true} />
-            <div className="pl-8">
-              {documentCategories.map((category) => (
-                <DocumentNotificationItem
-                  key={category}
-                  category={category}
-                  notification={notifications.documentExpirations}
-                  onToggle={() => onToggle(category)}
-                  onEmailToggle={() => onEmailToggle(category)}
-                  onScopeChange={(scope, checked) =>
-                    onScopeChange(category, scope, checked)
-                  }
-                  onFrequencyChange={(frequency, checked) =>
-                    onFrequencyChange(category, frequency, checked)
-                  }
-                />
-              ))}
-            </div>
-          </>
-        )}
+        </motion.div>
+        <AnimatePresence>
+          {expandedRemoved && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <NotificationHeader isDocuments={true} />
+              <div className="pl-8">
+                {documentCategories.map((category) => (
+                  <motion.div
+                    key={category}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <DocumentNotificationItem
+                      category={category}
+                      notification={notifications.documentExpirations}
+                      onToggle={() => onToggle(category)}
+                      onEmailToggle={() => onEmailToggle(category)}
+                      onScopeChange={(scope, checked) =>
+                        onScopeChange(category, scope, checked)
+                      }
+                      onFrequencyChange={(frequency, checked) =>
+                        onFrequencyChange(category, frequency, checked)
+                      }
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -1115,7 +1141,7 @@ export default function NotificationsPage() {
     const notification = notifications[category][setting];
 
     return (
-      <div className="flex flex-col gap-y-2 px-1 py-2">
+      <div className="flex flex-col gap-y-2">
         {category === 'documents' && setting === 'documentExpirations' ? (
           <DocumentNotifications
             notifications={notifications.documents}
