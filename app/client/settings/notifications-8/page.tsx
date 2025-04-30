@@ -257,7 +257,7 @@ const DocumentNotifications = ({
           >
             <ChevronRight className="size-5" />
           </motion.div>
-          <div className="font-medium">Documents added</div>
+          <div className="font-medium">Contractor adds documents</div>
         </motion.div>
         <AnimatePresence>
           {expandedAdded && (
@@ -333,7 +333,7 @@ const DocumentNotifications = ({
           >
             <ChevronRight className="size-5" />
           </motion.div>
-          <div className="font-medium">Documents expired</div>
+          <div className="font-medium">Contractor documents expire</div>
         </motion.div>
         <AnimatePresence>
           {expandedRemoved && (
