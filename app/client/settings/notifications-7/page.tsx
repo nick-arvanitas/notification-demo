@@ -1,0 +1,1043 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ChevronDown, MoreHorizontal, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
+const NotificationHeader = () => (
+  <div className="grid grid-cols-[1fr_220px_100px_150px] items-center gap-4 px-1 pb-1 pt-3">
+    <div className="text-sm font-bold text-zinc-900">Name</div>
+    <div className="text-sm font-bold text-zinc-900">Scope</div>
+    <div className="text-sm text-center font-bold text-zinc-900">
+      Notification
+    </div>
+    <div className="text-sm font-bold text-zinc-900">Email</div>
+  </div>
+);
+
+type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
+type DocumentNotificationScope = 'all' | 'myProjects' | 'custom' | 'none';
+type DocumentCategoryScope = 'all' | 'custom';
+type DocumentCategoryNotificationTime =
+  | 'onExpiration'
+  | '7days'
+  | '14days'
+  | '30days'
+  | '90days'
+  | 'custom';
+
+interface NotificationSetting {
+  enabled: boolean;
+  frequency: NotificationFrequency;
+  watchedUsers?: string[];
+  documentScope?: DocumentNotificationScope;
+  documentCategoryScope?: DocumentCategoryScope;
+  selectedCategories?: string[];
+  categoryNotificationTimes?: Record<
+    string,
+    DocumentCategoryNotificationTime[]
+  >;
+  categoryCustomDates?: Record<string, Date[]>;
+}
+
+interface NotificationGroup {
+  [key: string]: NotificationSetting;
+}
+
+interface NotificationsState {
+  [key: string]: NotificationGroup;
+}
+
+// Mock data for contractors
+const MOCK_CONTRACTORS = [
+  'A & A Contracting',
+  'ABC Contracting',
+  'XYZ Contracting',
+  'Best Builders Inc',
+  'Quality Construction Co',
+  'Elite Contractors LLC',
+  'Premier Builders',
+  'Master Builders Group',
+  'First Class Construction',
+  'Top Tier Contractors',
+];
+
+const documentCategories = [
+  'Insurance Certificates',
+  'Safety Training',
+  'Licenses',
+  'Certifications',
+  'Compliance Documents',
+  'Contracts',
+  'Other',
+];
+
+export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState<NotificationsState>({
+    company: {
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      primaryTradeChanges: { enabled: true, frequency: 'instant' },
+      subscriptionExpiring: { enabled: true, frequency: 'instant' },
+      subscriptionExpired: { enabled: true, frequency: 'instant' },
+    },
+    safety: {
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      scoreChanges: { enabled: true, frequency: 'instant' },
+      becomesApproved: { enabled: true, frequency: 'instant' },
+      needsApproval: { enabled: true, frequency: 'instant' },
+    },
+    finance: {
+      payrollUpdates: { enabled: true, frequency: 'daily' },
+      assessmentsComplete: { enabled: true, frequency: 'instant' },
+      assessmentsIncomplete: { enabled: true, frequency: 'instant' },
+      scoreChanges: { enabled: true, frequency: 'instant' },
+      becomesApproved: { enabled: true, frequency: 'instant' },
+      needsApproval: { enabled: true, frequency: 'instant' },
+      newDocument: { enabled: true, frequency: 'instant' },
+    },
+    documents: {
+      newDocuments: { enabled: true, frequency: 'instant' },
+      documentExpired: { enabled: true, frequency: 'instant' },
+      documentExpirations: {
+        enabled: true,
+        frequency: 'daily',
+        watchedUsers: [],
+        documentScope: 'all',
+        documentCategoryScope: 'all',
+        selectedCategories: documentCategories,
+      },
+      signatureRequests: { enabled: false, frequency: 'instant' },
+    },
+    insurance: {
+      coverageRequirements: { enabled: true, frequency: 'instant' },
+      policyExpiring: { enabled: true, frequency: 'instant' },
+      policyExpired: { enabled: true, frequency: 'instant' },
+    },
+  });
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedContractors, setSelectedContractors] = useState<string[]>([]);
+  const [selectedContractor, setSelectedContractor] = useState<string>('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCategoriesDrawerOpen, setIsCategoriesDrawerOpen] = useState(false);
+  const [newUser, setNewUser] = useState<string>('');
+
+  const [selectedCategories, setSelectedCategories] =
+    useState<string[]>(documentCategories);
+  const [categoryNotificationTimes, setCategoryNotificationTimes] = useState<
+    Record<string, DocumentCategoryNotificationTime[]>
+  >(
+    documentCategories.reduce(
+      (acc, category) => ({
+        ...acc,
+        [category]: ['onExpiration'],
+      }),
+      {},
+    ),
+  );
+
+  const [categoryCustomDates, setCategoryCustomDates] = useState<
+    Record<string, Date[]>
+  >(
+    documentCategories.reduce(
+      (acc, category) => ({
+        ...acc,
+        [category]: [],
+      }),
+      {},
+    ),
+  );
+
+  // Add state for each instance of document scope selector
+  const [companyDrawerOpen, setCompanyDrawerOpen] = useState(false);
+  const [safetyDrawerOpen, setSafetyDrawerOpen] = useState(false);
+  const [financeDrawerOpen, setFinanceDrawerOpen] = useState(false);
+  const [documentsDrawerOpen, setDocumentsDrawerOpen] = useState(false);
+
+  const [companySelectedContractors, setCompanySelectedContractors] = useState<
+    string[]
+  >([]);
+  const [safetySelectedContractors, setSafetySelectedContractors] = useState<
+    string[]
+  >([]);
+  const [financeSelectedContractors, setFinanceSelectedContractors] = useState<
+    string[]
+  >([]);
+  const [documentsSelectedContractors, setDocumentsSelectedContractors] =
+    useState<string[]>([]);
+
+  const [companySelectedContractor, setCompanySelectedContractor] =
+    useState<string>('');
+  const [safetySelectedContractor, setSafetySelectedContractor] =
+    useState<string>('');
+  const [financeSelectedContractor, setFinanceSelectedContractor] =
+    useState<string>('');
+  const [documentsSelectedContractor, setDocumentsSelectedContractor] =
+    useState<string>('');
+
+  const handleToggle = (category: string, setting: string) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          enabled: !prev[category][setting].enabled,
+        },
+      },
+    }));
+  };
+
+  const handleFrequencyChange = (
+    category: string,
+    setting: string,
+    frequency: NotificationFrequency,
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          frequency,
+        },
+      },
+    }));
+  };
+
+  const handleScopeChange = (
+    category: string,
+    setting: string,
+    scope: DocumentNotificationScope,
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          documentScope: scope,
+        },
+      },
+    }));
+  };
+
+  const handleCategoryScopeChange = (
+    category: string,
+    setting: string,
+    scope: DocumentCategoryScope,
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          documentCategoryScope: scope,
+        },
+      },
+    }));
+  };
+
+  const handleCategoriesDrawerOpen = (category: string, setting: string) => {
+    const notification = notifications[category][setting];
+    setSelectedCategories(notification.selectedCategories || []);
+    setIsCategoriesDrawerOpen(true);
+  };
+
+  const handleCategoriesDrawerClose = () => {
+    setIsCategoriesDrawerOpen(false);
+    setSelectedCategories([]);
+  };
+
+  const handleCategoryTimeChange = (
+    category: string,
+    time: DocumentCategoryNotificationTime,
+    checked: boolean,
+  ) => {
+    setCategoryNotificationTimes((prev) => {
+      const currentTimes = prev[category] || [];
+      if (checked) {
+        return {
+          ...prev,
+          [category]: [...currentTimes, time],
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: currentTimes.filter((t) => t !== time),
+        };
+      }
+    });
+  };
+
+  const handleCustomDateChange = (
+    category: string,
+    dates: Date[] | undefined,
+  ) => {
+    setCategoryCustomDates((prev) => ({
+      ...prev,
+      [category]: dates || [],
+    }));
+  };
+
+  const handleAddCategories = (category: string, setting: string) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          selectedCategories: selectedCategories,
+          categoryNotificationTimes: categoryNotificationTimes,
+        },
+      },
+    }));
+    toast.success(
+      `${selectedCategories.length} categor${selectedCategories.length === 1 ? 'y' : 'ies'} added to your notification list.`,
+      {
+        position: 'top-right',
+      },
+    );
+  };
+
+  const toggleCategory = (category: string) => {
+    if (category && !selectedCategories.includes(category)) {
+      setSelectedCategories([...selectedCategories, category]);
+    } else {
+      setSelectedCategories(selectedCategories.filter((c) => c !== category));
+    }
+  };
+
+  const addWatchedUsers = (
+    category: string,
+    setting: string,
+    users: string[],
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          watchedUsers: [
+            ...new Set([
+              ...(prev[category][setting].watchedUsers || []),
+              ...users,
+            ]),
+          ],
+        },
+      },
+    }));
+    setSelectedContractors([]);
+    setSearchQuery('');
+  };
+
+  const removeWatchedUser = (
+    category: string,
+    setting: string,
+    userToRemove: string,
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: {
+          ...prev[category][setting],
+          watchedUsers: (prev[category][setting].watchedUsers || []).filter(
+            (user) => user !== userToRemove,
+          ),
+        },
+      },
+    }));
+  };
+
+  const filteredContractors = MOCK_CONTRACTORS.filter((contractor) =>
+    contractor.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const handleContractorSelect = (contractor: string) => {
+    if (contractor && !selectedContractors.includes(contractor)) {
+      setSelectedContractors([...selectedContractors, contractor]);
+      setSelectedContractor('');
+    }
+  };
+
+  const handleAddContractors = (category: string, setting: string) => {
+    addWatchedUsers(category, setting, selectedContractors);
+    toast.success(
+      `${selectedContractors.length} contractor${selectedContractors.length === 1 ? '' : 's'} added to your notification list.`,
+      {
+        position: 'top-right',
+      },
+    );
+  };
+
+  const handleDrawerOpen = (category: string, setting: string) => {
+    const notification = notifications[category][setting];
+    setSelectedContractors(notification.watchedUsers || []);
+    setIsDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+    setSelectedContractors([]);
+    setSelectedContractor('');
+  };
+
+  const renderDocumentScopeSelector = (category: string, setting: string) => {
+    const notification = notifications[category][setting];
+    if (!notification.enabled) return null;
+
+    return (
+      <div className="flex gap-x-3">
+        {notification.documentScope === 'custom' && (
+          <Drawer
+            direction="right"
+            open={isDrawerOpen}
+            onOpenChange={setIsDrawerOpen}
+          >
+            <DrawerTrigger asChild>
+              <Button
+                variant="link"
+                size="sm"
+                className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
+                onClick={() => handleDrawerOpen(category, setting)}
+              >
+                {(notification.watchedUsers || []).length > 0
+                  ? `${(notification.watchedUsers || []).length} contractor${(notification.watchedUsers || []).length === 1 ? '' : 's'} selected`
+                  : 'Add Contractors'}
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="w-[620px] !max-w-[620px]">
+              <DrawerHeader className="border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DrawerTitle>Add Contractors</DrawerTitle>
+                    <DrawerDescription>
+                      Select contractors to receive notifications for
+                    </DrawerDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={handleDrawerClose}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </DrawerHeader>
+              <div className="p-4 flex-1">
+                <div className="flex flex-col gap-4">
+                  <Select
+                    value={selectedContractor}
+                    onValueChange={handleContractorSelect}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a contractor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredContractors
+                        .filter(
+                          (contractor) =>
+                            !selectedContractors.includes(contractor) &&
+                            !notification.watchedUsers?.includes(contractor),
+                        )
+                        .map((contractor) => (
+                          <SelectItem key={contractor} value={contractor}>
+                            {contractor}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="space-y-2">
+                    <div className="space-y-0">
+                      {selectedContractors.map((contractor) => (
+                        <div
+                          key={contractor}
+                          className="flex items-center justify-between py-2 border-b last:border-b-0"
+                        >
+                          <span className="text-sm">{contractor}</span>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedContractors(
+                                    selectedContractors.filter(
+                                      (c) => c !== contractor,
+                                    ),
+                                  );
+                                }}
+                              >
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DrawerFooter className="border-t">
+                <div className="flex justify-end gap-2">
+                  <DrawerClose asChild>
+                    <Button variant="outline" onClick={handleDrawerClose}>
+                      Cancel
+                    </Button>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <Button
+                      onClick={() => {
+                        handleAddContractors(category, setting);
+                        handleDrawerClose();
+                      }}
+                    >
+                      Add Selected
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        )}
+        <Select
+          value={notification.documentScope || 'all'}
+          onValueChange={(value: DocumentNotificationScope) =>
+            handleScopeChange(category, setting, value)
+          }
+        >
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Select scope" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Contractors</SelectItem>
+            <SelectItem value="myProjects">
+              Contractors on my projects
+            </SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+            <SelectItem value="none">No Contractors</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
+
+  const renderNotificationItem = (
+    category: string,
+    setting: string,
+    label: string,
+  ) => {
+    const notification = notifications[category][setting];
+
+    return (
+      <div className="flex flex-col gap-y-2 px-1 py-2">
+        <div className="grid grid-cols-[1fr_auto_100px_150px] items-center gap-4">
+          <div className="flex-1">
+            <Label className="text-sm font-medium text-zinc-600">{label}</Label>
+          </div>
+          <div>{renderDocumentScopeSelector(category, setting)}</div>
+          <div className="flex items-center justify-center gap-2">
+            <Switch
+              checked={notification.enabled}
+              onCheckedChange={() => handleToggle(category, setting)}
+            />
+          </div>
+          <div className="gap-2">
+            <Select
+              value={notification.frequency}
+              onValueChange={(value: NotificationFrequency) =>
+                handleFrequencyChange(category, setting, value)
+              }
+            >
+              <SelectTrigger className="w-full text-right">
+                <SelectValue placeholder="Frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="instant">Instant</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-screen-xl mb-10">
+      <div className="flex flex-col">
+        <Accordion type="multiple" className="w-full flex flex-col gap-y-4">
+          <AccordionItem
+            value="company"
+            className="border border-zinc-200 rounded-lg transition-shadow"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-lg font-semibold">Company</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div>
+                <NotificationHeader />
+                {renderNotificationItem(
+                  'company',
+                  'assessmentsComplete',
+                  'Company assessments become complete',
+                )}
+                {renderNotificationItem(
+                  'company',
+                  'assessmentsIncomplete',
+                  'Company assessments become incomplete',
+                )}
+                {renderNotificationItem(
+                  'company',
+                  'primaryTradeChanges',
+                  'Primary trade changes',
+                )}
+                {renderNotificationItem(
+                  'company',
+                  'subscriptionExpiring',
+                  'Highwire subscription is 30 days from expiration',
+                )}
+                {renderNotificationItem(
+                  'company',
+                  'subscriptionExpired',
+                  'Highwire subscription is expired',
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem
+            value="safety"
+            className="border border-zinc-200 rounded-lg transition-shadow"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-lg font-semibold">Safety</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div>
+                <NotificationHeader />
+                {renderNotificationItem(
+                  'safety',
+                  'assessmentsComplete',
+                  'Safety assessments become complete',
+                )}
+                {renderNotificationItem(
+                  'safety',
+                  'assessmentsIncomplete',
+                  'Safety assessments become incomplete',
+                )}
+                {renderNotificationItem(
+                  'safety',
+                  'scoreChanges',
+                  'Safety score changes',
+                )}
+                {renderNotificationItem(
+                  'safety',
+                  'becomesApproved',
+                  'Safety becomes approved',
+                )}
+                {renderNotificationItem(
+                  'safety',
+                  'needsApproval',
+                  'Safety needs approval',
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem
+            value="finance"
+            className="border border-zinc-200 rounded-lg transition-shadow"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-lg font-semibold">Finance</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div>
+                <NotificationHeader />
+                {renderNotificationItem(
+                  'finance',
+                  'assessmentsComplete',
+                  'Finance assessments become complete',
+                )}
+                {renderNotificationItem(
+                  'finance',
+                  'assessmentsIncomplete',
+                  'Finance assessments become incomplete',
+                )}
+                {renderNotificationItem(
+                  'finance',
+                  'scoreChanges',
+                  'Finance score changes',
+                )}
+                {renderNotificationItem(
+                  'finance',
+                  'becomesApproved',
+                  'Finance becomes approved',
+                )}
+                {renderNotificationItem(
+                  'finance',
+                  'needsApproval',
+                  'Finance needs approval',
+                )}
+                {renderNotificationItem(
+                  'finance',
+                  'newDocument',
+                  'New financial document is uploaded',
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem
+            value="insurance"
+            className="border border-zinc-200 rounded-lg transition-shadow"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-lg font-semibold">Insurance</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div>
+                <NotificationHeader />
+                {renderNotificationItem(
+                  'insurance',
+                  'coverageRequirements',
+                  'Insurance coverage does not meet requirements',
+                )}
+                {renderNotificationItem(
+                  'insurance',
+                  'policyExpiring',
+                  'Insurance policy is 30 days from expiration',
+                )}
+                {renderNotificationItem(
+                  'insurance',
+                  'policyExpired',
+                  'Insurance policy is expired',
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem
+            value="documents"
+            className="border border-zinc-200 rounded-lg transition-shadow"
+          >
+            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+              <span className="text-lg font-semibold">Documents</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div>
+                <div className="flex justify-between gap-2 mb-4 px-1">
+                  <Label className="text-sm font-medium text-zinc-600">
+                    Notify me about documents in...
+                  </Label>
+                  <Drawer
+                    direction="right"
+                    open={isCategoriesDrawerOpen}
+                    onOpenChange={setIsCategoriesDrawerOpen}
+                  >
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-8 text-blue-600 hover:text-blue-800 hover:no-underline px-0"
+                        onClick={() =>
+                          handleCategoriesDrawerOpen(
+                            'documents',
+                            'documentExpirations',
+                          )
+                        }
+                      >
+                        {notifications.documents.documentExpirations
+                          .selectedCategories?.length || 0}{' '}
+                        categories selected
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerContent className="w-[620px] !max-w-[620px]">
+                      <DrawerHeader className="border-b">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <DrawerTitle>Edit Categories</DrawerTitle>
+                            <DrawerDescription>
+                              Select document categories to receive
+                              notifications for
+                            </DrawerDescription>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={handleCategoriesDrawerClose}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </DrawerHeader>
+                      <div className="p-4 flex-1">
+                        <div className="flex flex-col gap-4">
+                          <div className="space-y-2">
+                            <div className="py-2 border-b">
+                              <div className="px-2 flex items-center gap-2 justify-between">
+                                <span className="text-sm font-medium text-zinc-600">
+                                  Name
+                                </span>
+                                <span className="text-sm font-medium text-zinc-600">
+                                  Time
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-0">
+                              {documentCategories.map((category) => (
+                                <div
+                                  key={category}
+                                  className="flex items-center justify-between py-2 border-b last:border-b-0"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={category}
+                                      checked={selectedCategories.includes(
+                                        category,
+                                      )}
+                                      onCheckedChange={() =>
+                                        toggleCategory(category)
+                                      }
+                                    />
+                                    <Label
+                                      htmlFor={category}
+                                      className="text-sm"
+                                    >
+                                      {category}
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-[180px] justify-between"
+                                          disabled={
+                                            !selectedCategories.includes(
+                                              category,
+                                            )
+                                          }
+                                        >
+                                          {categoryNotificationTimes[category]
+                                            ?.length
+                                            ? categoryNotificationTimes[
+                                                category
+                                              ].length > 1
+                                              ? `${categoryNotificationTimes[category].length} options selected`
+                                              : (() => {
+                                                  const time =
+                                                    categoryNotificationTimes[
+                                                      category
+                                                    ][0];
+                                                  switch (time) {
+                                                    case 'onExpiration':
+                                                      return 'When expired';
+                                                    case '7days':
+                                                      return '7 days before';
+                                                    case '14days':
+                                                      return '14 days before';
+                                                    case '30days':
+                                                      return '30 days before';
+                                                    case '90days':
+                                                      return '90 days before';
+                                                    case 'custom':
+                                                      return 'Custom date';
+                                                    default:
+                                                      return time;
+                                                  }
+                                                })()
+                                            : 'Select times'}
+                                          <ChevronDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent
+                                        align="end"
+                                        className="w-[180px]"
+                                        onCloseAutoFocus={(e) =>
+                                          e.preventDefault()
+                                        }
+                                      >
+                                        <DropdownMenuCheckboxItem
+                                          checked={categoryNotificationTimes[
+                                            category
+                                          ]?.includes('onExpiration')}
+                                          onSelect={(e) => e.preventDefault()}
+                                          onCheckedChange={(checked) =>
+                                            handleCategoryTimeChange(
+                                              category,
+                                              'onExpiration',
+                                              checked,
+                                            )
+                                          }
+                                        >
+                                          When expired
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuCheckboxItem
+                                          checked={categoryNotificationTimes[
+                                            category
+                                          ]?.includes('7days')}
+                                          onSelect={(e) => e.preventDefault()}
+                                          onCheckedChange={(checked) =>
+                                            handleCategoryTimeChange(
+                                              category,
+                                              '7days',
+                                              checked,
+                                            )
+                                          }
+                                        >
+                                          7 days before
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuCheckboxItem
+                                          checked={categoryNotificationTimes[
+                                            category
+                                          ]?.includes('14days')}
+                                          onSelect={(e) => e.preventDefault()}
+                                          onCheckedChange={(checked) =>
+                                            handleCategoryTimeChange(
+                                              category,
+                                              '14days',
+                                              checked,
+                                            )
+                                          }
+                                        >
+                                          14 days before
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuCheckboxItem
+                                          checked={categoryNotificationTimes[
+                                            category
+                                          ]?.includes('30days')}
+                                          onSelect={(e) => e.preventDefault()}
+                                          onCheckedChange={(checked) =>
+                                            handleCategoryTimeChange(
+                                              category,
+                                              '30days',
+                                              checked,
+                                            )
+                                          }
+                                        >
+                                          30 days before
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuCheckboxItem
+                                          checked={categoryNotificationTimes[
+                                            category
+                                          ]?.includes('90days')}
+                                          onSelect={(e) => e.preventDefault()}
+                                          onCheckedChange={(checked) =>
+                                            handleCategoryTimeChange(
+                                              category,
+                                              '90days',
+                                              checked,
+                                            )
+                                          }
+                                        >
+                                          90 days before
+                                        </DropdownMenuCheckboxItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <DrawerFooter className="border-t">
+                        <div className="flex justify-end gap-2">
+                          <DrawerClose asChild>
+                            <Button
+                              variant="outline"
+                              onClick={handleCategoriesDrawerClose}
+                            >
+                              Cancel
+                            </Button>
+                          </DrawerClose>
+                          <DrawerClose asChild>
+                            <Button
+                              onClick={() => {
+                                handleAddCategories(
+                                  'documents',
+                                  'documentExpirations',
+                                );
+                                handleCategoriesDrawerClose();
+                              }}
+                            >
+                              Update
+                            </Button>
+                          </DrawerClose>
+                        </div>
+                      </DrawerFooter>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
+                <NotificationHeader />
+                {renderNotificationItem(
+                  'documents',
+                  'documentExpired',
+                  'Contractor document expired',
+                )}
+                {renderNotificationItem(
+                  'documents',
+                  'newDocuments',
+                  'New document added',
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
+  );
+}
