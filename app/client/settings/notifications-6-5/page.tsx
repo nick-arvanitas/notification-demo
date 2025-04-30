@@ -101,6 +101,7 @@ interface NotificationSetting {
     DocumentCategoryNotificationTime[]
   >;
   categoryScopes?: Record<string, ('expired' | 'added')[]>;
+  watchedUsers?: string[];
 }
 
 interface NotificationGroup {
@@ -411,6 +412,23 @@ export default function NotificationsPage() {
       },
       signatureRequests: {
         enabled: false,
+        frequency: 'instant',
+        emailEnabled: true,
+      },
+    },
+    watchedUsers: {
+      'A & A Contracting': {
+        enabled: true,
+        frequency: 'instant',
+        emailEnabled: true,
+      },
+      'ABC Contracting': {
+        enabled: true,
+        frequency: 'instant',
+        emailEnabled: true,
+      },
+      'XYZ Contracting': {
+        enabled: true,
         frequency: 'instant',
         emailEnabled: true,
       },
