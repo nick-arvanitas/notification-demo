@@ -80,7 +80,11 @@ const documentCategoryNotificationTimes = [
 ] as const;
 
 type DocumentCategoryNotificationTime =
-  (typeof documentCategoryNotificationTimes)[number];
+  | 'When expired'
+  | '7 days before'
+  | '14 days before'
+  | '30 days before'
+  | '90 days before';
 
 interface NotificationSetting {
   enabled: boolean;
@@ -530,17 +534,18 @@ export default function NotificationsPage() {
     scope: DocumentNotificationScope,
   ) => {
     setNotifications((prev) => {
-      // For document categories, we need to handle the scope differently
       if (category === 'documents' && setting === 'documentExpirations') {
         const currentState = prev.documents?.documentExpirations || {
           enabled: true,
           frequency: 'daily',
           emailEnabled: true,
-          watchedUsers: [],
           documentScope: 'all',
           documentCategoryScope: 'all',
           selectedCategories: documentCategories,
           categoryNotificationTimes: {},
+          categoryEnabled: {},
+          categoryEmailEnabled: {},
+          categoryScopes: {},
         };
 
         return {
@@ -550,30 +555,17 @@ export default function NotificationsPage() {
             documentExpirations: {
               ...currentState,
               documentScope: scope,
-              categoryNotificationTimes: Object.fromEntries(
-                (currentState.selectedCategories || []).map((cat) => [
-                  cat,
-                  [scope === 'expired' ? 'onExpiration' : 'instant'],
-                ]),
-              ),
             },
           },
         };
       }
-
-      // For all other cases
-      const currentSetting = prev[category]?.[setting] || {
-        enabled: true,
-        frequency: 'instant',
-        emailEnabled: true,
-      };
 
       return {
         ...prev,
         [category]: {
           ...prev[category],
           [setting]: {
-            ...currentSetting,
+            ...prev[category][setting],
             documentScope: scope,
           },
         },
