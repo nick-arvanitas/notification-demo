@@ -373,7 +373,6 @@ export default function NotificationsPage() {
         enabled: true,
         frequency: 'daily',
         emailEnabled: true,
-        watchedUsers: [],
         documentScope: 'all',
         documentCategoryScope: 'all',
         selectedCategories: documentCategories,
