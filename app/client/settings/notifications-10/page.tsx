@@ -391,7 +391,7 @@ export default function NotificationsPage() {
         categoryNotificationTimes: documentCategories.reduce(
           (acc, category) => ({
             ...acc,
-            [category]: ['When expired'],
+            [category]: ['When expired', 'When added'],
           }),
           {},
         ),
@@ -1078,12 +1078,7 @@ export default function NotificationsPage() {
               <Label className="font-medium text-zinc-600">{label}</Label>
             </div>
             <div>{renderDocumentScopeSelector(category, setting)}</div>
-            <div className="flex items-center justify-center">
-              <Switch
-                checked={notification.enabled}
-                onCheckedChange={() => handleToggle(category, setting)}
-              />
-            </div>
+
             <div>
               <Select
                 value={notification.frequency}
@@ -1101,6 +1096,12 @@ export default function NotificationsPage() {
                   <SelectItem value="never">Never</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center justify-center">
+              <Switch
+                checked={notification.enabled}
+                onCheckedChange={() => handleToggle(category, setting)}
+              />
             </div>
           </div>
         )}
